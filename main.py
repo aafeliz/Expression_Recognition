@@ -7,6 +7,7 @@ import cv2
 import os
 import glob
 import math as m
+import PNN as nn
 
 def knnDistances(point, points):
     distances = []
@@ -62,9 +63,13 @@ for img in glob.glob("TrainingImages/*.jpg"):
     print "count is :" + str(countOnes)
     masks.append(np.matrix(mask))
 
+distancesNP = np.array(distances)
+distancesNP = np.swapaxes(distancesNP, 0, 1) #4,68,67 to 68,4,67
 names = np.array(names)
 
-
+pnn = nn.ParzensNN(distancesNP, distancesNP.shape[0], 1, 0.001, 0.1)  # 0.000015
+#pnn.test(data)
+# TODO: Implement pnn test
 
 
 
@@ -118,6 +123,24 @@ while 1:
         #win.clear_overlay
         #win.add_overlay(shape)
 
+
+    # getting the 68 x 67 distances
+    imgDistances = np.zeros(shape=(len(points), (len(points)-1)), dtype=np.float)
+    mask = np.zeros((img.shape[0], img.shape[1]), dtype=np.uint8)
+    indx = 0
+    for x in points:
+        # mask[x] = 1
+        #cv2.circle(mask, (x), 5, (255), thickness=-1)
+        y = knnDistances(x, points)
+        sum = 0
+        for i in y:
+            sum = sum + i
+        for i in range(len(y)):
+            y[i] = y[i] / sum
+
+        imgDistances[indx] = y
+        indx = indx+1
+    distances.append(imgDistances)
     cv2.imshow("results", other)
     cv2.waitKey(30)
 cam.release()
