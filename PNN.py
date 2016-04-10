@@ -69,7 +69,7 @@ class Node:
     def fit(self, nClasses, X):
         self.outClasses = np.zeros(shape=nClasses)  # 10 possible classes not one because your training is based on many classes coming in.
         self.windowRange = [(1.5 * np.amin(X)), (1.5 * np.amax(X))]
-        self.stepsize = (self.windowRange[1] - self.windowRange[0]) / (100)
+        self.stepsize = (self.windowRange[1] - self.windowRange[0]) / (500)
         self.window = np.arange(self.windowRange[0], self.windowRange[1], self.stepsize)
         self.windowSize = self.window.shape[0]
         self.pdfs = np.zeros(shape=(nClasses, self.window.shape[0]))  # creates 10 by windowsize making 10 parzens windowsfor each input
@@ -101,7 +101,7 @@ class Node:
         self.prePdfSum = 0.00
         for j in range(self.windowSize):
             self.prePdfSum += self.pdfs[id, j]
-        print(str(self.prePdfSum))
+        #print(str(self.prePdfSum))
 
         for j in range(self.windowSize):
             self.pdfs[id, j] = self.pdfs[id, j] / self.prePdfSum
@@ -132,11 +132,12 @@ class ParzensNN: # pass in X = 68 * (4* 67), 68 is one for each feature, 67 is d
         self.nu = nu_
         self.sigStep = (max_sigma_ - min_sigma_) / num_nodes_
         self.sigs = np.arange(min_sigma_, max_sigma_, self.sigStep)
+        self.sig = 0.001
 
         self.nodes = []
         for i in range(self.num_nodes): # 68
             xinput = X[i,:,:]
-            self.nodes.append(Node(i, self.sigs[i]))
+            self.nodes.append(Node(i, self.sig))
             self.nodes[i].fit(xinput.shape[0],xinput)
 
     def test(self, x): # x will be 68 by 67 for each frame from cam
@@ -151,4 +152,7 @@ class ParzensNN: # pass in X = 68 * (4* 67), 68 is one for each feature, 67 is d
             self.classified2[i] = np.argmax(counts)
         #df1 = pandas.DataFrame(self.classified2)
         #df1.to_csv("classificationResults.csv")
-        print(str(self.classified2))
+        #print(str(self.classified2))
+        result = np.bincount(self.classified2.astype(int))
+        #result = np.argmax(result)
+        print(result)

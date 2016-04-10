@@ -66,8 +66,8 @@ for img in glob.glob("TrainingImages/*.jpg"):
 distancesNP = np.array(distances)
 distancesNP = np.swapaxes(distancesNP, 0, 1) #4,68,67 to 68,4,67
 names = np.array(names)
-
-pnn = nn.ParzensNN(distancesNP, distancesNP.shape[0], 1, 0.001, 0.1)  # 0.000015
+print(names)
+pnn = nn.ParzensNN(distancesNP, distancesNP.shape[0], 0.001, 0.00001, 0.1)  # 0.000015
 #pnn.test(data)
 # TODO: Implement pnn test
 
@@ -140,7 +140,7 @@ while 1:
 
         imgDistances[indx] = y
         indx = indx+1
-    distances.append(imgDistances)
+    pnn.test(imgDistances)
     cv2.imshow("results", other)
     cv2.waitKey(30)
 cam.release()
