@@ -59,13 +59,16 @@ import pandas
 #pnn.test(data)
 
 class Node:
-    def __init__(self, inputNum_, sig_):
+    def __init__(self, inputNum_, sig_, epoch_, nu_):
         self.inputNum = inputNum_
         self.mostActivated = 0
         self.errors = 0
         self.past_errors = 0
         self.weight = 1.00
         self.sig = sig_
+        self.epoch = epoch_
+        self.nu = nu_
+
     def fit(self, nClasses, X):
         self.outClasses = np.zeros(shape=nClasses)  # 10 possible classes not one because your training is based on many classes coming in.
         self.windowRange = [(1.5 * np.amin(X)), (1.5 * np.amax(X))]
@@ -73,6 +76,7 @@ class Node:
         self.window = np.arange(self.windowRange[0], self.windowRange[1], self.stepsize)
         self.windowSize = self.window.shape[0]
         self.pdfs = np.zeros(shape=(nClasses, self.window.shape[0]))  # creates 10 by windowsize making 10 parzens windowsfor each input
+
 
         for i in range(nClasses):
             indx = 0
@@ -82,6 +86,48 @@ class Node:
                 indx += 1
             self.parzensWindow(xinput, i)
         #state = True
+        # **************************************** CORRECTION STEP *****************************************
+        state = True
+        self.errors = 0
+        epochNum =0
+        for c in range(self.epoch):
+            self.past_errors = self.errors
+            self.errors = 0;
+            for q in range(X.shape[0]):
+                for i in range(X.shape[1]):  # all samples-- index 1 since shape is 4* 67
+                    self.test(X[q,i])
+                    actual = q # y[i, 0]
+                    if self.mostActivated != actual:
+                        self.errors = self.errors + 1  # (actual-mostActivated)
+
+            self.percent = self.errors / X.shape[0]
+            print("sigma " + str(self.sig) + " contains errors: " + str(self.errors) + " percent: " + str(self.percent) + "on epoch: " + str(epochNum))
+            if self.errors < self.past_errors:
+                if state == True:
+                    state = False
+                else:
+                    state = False
+
+            if state == True:
+                self.sig = self.sig + (self.nu * (self.errors))  # self.weight instead of sig and self.errors instaead of self.percent
+            else:
+                self.sig = self.sig - (self.nu * (self.errors))
+
+            if self.errors == 0:
+                break
+            # rebuild pdfs with the new sigma
+            for i in range(nClasses):
+                indx = 0
+                xinput = np.zeros(shape=(X.shape[1]))
+                for j in range(
+                        X.shape[1]):  # shape is enough since each input will be number of samples by num of classes 4*67
+                    xinput[indx] = X[i, j]
+                    indx += 1
+                self.parzensWindow(xinput, i)
+            epochNum = epochNum + 1
+
+        df = pandas.DataFrame(self.pdfs)
+        df.to_csv(('parzens/' + str(self.inputNum) + '.csv'))
 
     def parzensWindow(self, X, id):  # X is size 68
         # fill in the values that make up the range covered in window
@@ -106,8 +152,8 @@ class Node:
         for j in range(self.windowSize):
             self.pdfs[id, j] = self.pdfs[id, j] / self.prePdfSum
 
-        df = pandas.DataFrame(self.pdfs)
-        df.to_csv(('parzens/' + str(self.inputNum) + '.csv'))
+        #df = pandas.DataFrame(self.pdfs)
+        #df.to_csv(('parzens/' + str(self.inputNum) + '.csv'))
 
     def test(self, x):
         for i in range(self.outClasses.shape[0]):           # for all classes
@@ -132,12 +178,12 @@ class ParzensNN: # pass in X = 68 * (4* 67), 68 is one for each feature, 67 is d
         self.nu = nu_
         self.sigStep = (max_sigma_ - min_sigma_) / num_nodes_
         self.sigs = np.arange(min_sigma_, max_sigma_, self.sigStep)
-        self.sig = 0.001
+        self.sig = 0.0001
 
         self.nodes = []
         for i in range(self.num_nodes): # 68
             xinput = X[i,:,:]
-            self.nodes.append(Node(i, self.sig))
+            self.nodes.append(Node(i, self.sig, 10, self.nu))
             self.nodes[i].fit(xinput.shape[0],xinput)
 
     def test(self, x): # x will be 68 by 67 for each frame from cam

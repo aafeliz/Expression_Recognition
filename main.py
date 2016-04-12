@@ -67,9 +67,9 @@ distancesNP = np.array(distances)
 distancesNP = np.swapaxes(distancesNP, 0, 1) #4,68,67 to 68,4,67
 names = np.array(names)
 print(names)
-pnn = nn.ParzensNN(distancesNP, distancesNP.shape[0], 0.001, 0.00001, 0.1)  # 0.000015
+pnn = nn.ParzensNN(distancesNP, distancesNP.shape[0], 0.001, 0.00001, 0.00000001)  # 0.000015
 #pnn.test(data)
-# TODO: Implement pnn test
+# TODO: Keep working on a better method to test, and try to get different test data
 
 
 
