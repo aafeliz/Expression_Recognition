@@ -18,6 +18,8 @@ class Node:
         self.epoch = epoch_
         self.nu = nu_
         self.gradient = "decending"
+        self.preDeltaErrors = 0
+        self.deltaErrors = 0
 
     def fit(self, nClasses, X):
         self.outClasses = np.zeros(shape=nClasses)  # 10 possible classes not one because your training is based on many classes coming in.
