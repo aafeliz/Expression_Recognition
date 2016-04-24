@@ -2,61 +2,10 @@ import numpy as np
 import math
 import pandas
 
-'''
-    def fit(self, X, y, sig_, epochs, nu):  # x comes in as 1-D array of 2399
-
-        amount =np.bincount(y[:, 0])
-        for i in np.unique(y):
-            indx = 0
-            xinput = np.zeros(shape=(amount[i]))
-            for j in range(X.shape[0]):  #2399
-                class_ = y[j, 0]         # class for the sample number j
-                if class_ == i:
-                    xinput[indx] = X[j]
-                    indx += 1
-
-            self.parzensWindow(xinput, i)
-        state = True
-        for c in range(epochs):
-            self.past_errors = self.errors
-            self.errors = 0;
-            for i in range(X.shape[0]):  # all samples
-                for j in range(self.outClasses.shape[0]):  # for all ten classes # i need to seperate this all for each class
-                    x = X[i] * self.weight
-                    idx = self.find_closest(self.window, x)
-                    self.outClasses[j] = self.pdfs[j, idx]
-                mostActivated = np.argmax(self.outClasses)
-                actual = y[i, 0]
-                if mostActivated != actual:
-                    self.errors = self.errors + 1 # (actual-mostActivated)
-
-
-            percent = self.errors/X.shape[0]
-            print("weight "+ str(self.weight) + " contains errors: " + str(self.errors) + " percent: " + str(percent))
-            if self.errors > self.past_errors:
-                if state == True:
-                    state = False
-                else:
-                    state = False
-
-            if state == True:
-                self.weight = self.weight + (nu*(self.errors)) #/X.shape[0]
-            else:
-                self.weight = self.weight - (nu*(self.errors))
-
-            if self.errors == 0:
-                break
-
-        df = pandas.DataFrame(self.pdfs)
-        df.to_csv(('parzens/'+str(self.inputNum)+'.csv')) '''
-
-
-
-
-
-
 #pnn = ParzensNN(X, labels, 10, 0.00000001)  # 0.000015
 #pnn.test(data)
+
+# TODO: implement the Delta errors into the correction step in order to temperaraly accelerate the learning rate
 
 class Node:
     def __init__(self, inputNum_, sig_, epoch_, nu_):
@@ -68,6 +17,7 @@ class Node:
         self.sig = sig_
         self.epoch = epoch_
         self.nu = nu_
+        self.gradient = "decending"
 
     def fit(self, nClasses, X):
         self.outClasses = np.zeros(shape=nClasses)  # 10 possible classes not one because your training is based on many classes coming in.
@@ -87,31 +37,36 @@ class Node:
             self.parzensWindow(xinput, i)
         #state = True
         # **************************************** CORRECTION STEP *****************************************
+        #'''
         state = True
         self.errors = 0
         epochNum =0
         for c in range(self.epoch):
+            self.preDeltaErrors = self.deltaErrors
             self.past_errors = self.errors
-            self.errors = 0;
+            self.errors = 0
             for q in range(X.shape[0]):
                 for i in range(X.shape[1]):  # all samples-- index 1 since shape is 4* 67
-                    self.test(X[q,i])
+                    self.test(X[q, i])
                     actual = q # y[i, 0]
                     if self.mostActivated != actual:
                         self.errors = self.errors + 1  # (actual-mostActivated)
-
             self.percent = self.errors / X.shape[0]
+
             print("sigma " + str(self.sig) + " contains errors: " + str(self.errors) + " percent: " + str(self.percent) + "on epoch: " + str(epochNum))
-            if self.errors < self.past_errors:
-                if state == True:
+            self.deltaErrors = abs(self.past_errors - self.errors)
+            if self.errors > self.past_errors:
+                if state is True:
                     state = False
                 else:
-                    state = False
+                    state = True
 
-            if state == True:
-                self.sig = self.sig + (self.nu * (self.errors))  # self.weight instead of sig and self.errors instaead of self.percent
+            if state is True:
+                self.sig = self.sig + (self.nu * (self.percent))  # self.weight instead of sig and self.errors instaead of self.percent
+                self.gradient = "accending"
             else:
-                self.sig = self.sig - (self.nu * (self.errors))
+                self.sig = self.sig - (self.nu * (self.percent))
+                self.gradient = "decending"
 
             if self.errors == 0:
                 break
@@ -125,7 +80,8 @@ class Node:
                     indx += 1
                 self.parzensWindow(xinput, i)
             epochNum = epochNum + 1
-
+        #'''
+        # **************************************** CORRECTION STEP END *****************************************
         df = pandas.DataFrame(self.pdfs)
         df.to_csv(('parzens/' + str(self.inputNum) + '.csv'))
 
@@ -183,7 +139,7 @@ class ParzensNN: # pass in X = 68 * (4* 67), 68 is one for each feature, 67 is d
         self.nodes = []
         for i in range(self.num_nodes): # 68
             xinput = X[i,:,:]
-            self.nodes.append(Node(i, self.sig, 10, self.nu))
+            self.nodes.append(Node(i, self.sig, 100, self.nu))
             self.nodes[i].fit(xinput.shape[0],xinput)
 
     def test(self, x): # x will be 68 by 67 for each frame from cam
