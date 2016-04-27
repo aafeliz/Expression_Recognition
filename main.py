@@ -8,6 +8,7 @@ import os
 import glob
 import math as m
 import PNN as nn
+#
 
 def knnDistances(point, points):
     distances = []
