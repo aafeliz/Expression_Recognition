@@ -6,6 +6,24 @@ import pandas
 #pnn.test(data)
 
 # TODO: implement the Delta errors into the correction step in order to temperaraly accelerate the learning rate
+def insert_line(fileName, lineNum, text):
+    with open(fileName, 'r') as file:
+        # read a list of lines into data
+        data = file.readlines()
+    tempData = data[lineNum] +'\n'
+    # now change the 2nd line, note that you have to add a newline
+    #data[lineNum] = text
+    data[lineNum] = data[lineNum].replace(tempData, text)
+    # and write everything back
+    with open(fileName, 'w') as file:
+        file.writelines(data)
+
+def get_sigma(fileName, sigma):
+    with open(fileName, 'r') as file:
+        # read a list of lines into data
+        data = file.readlines()
+    sigma = data[sigma]
+    return sigma
 
 class Node:
     def __init__(self, inputNum_, sig_, epoch_, nu_):
@@ -84,6 +102,10 @@ class Node:
             epochNum = epochNum + 1
         #'''
         # **************************************** CORRECTION STEP END *****************************************
+        if self.inputNum < 49:
+            insert_line('sigmas.txt', self.inputNum, str(self.sig))
+        else:
+            insert_line('sigmas2.txt', self.inputNum-49, str(self.sig))
         df = pandas.DataFrame(self.pdfs)
         df.to_csv(('parzens/' + str(self.inputNum) + '.csv'))
 
@@ -137,12 +159,20 @@ class ParzensNN: # pass in X = 68 * (4* 67), 68 is one for each feature, 67 is d
         self.sigStep = (max_sigma_ - min_sigma_) / num_nodes_
         self.sigs = np.arange(min_sigma_, max_sigma_, self.sigStep)
         self.sig = 0.0001
+        self.result = [0, 0, 0, 0]
+        '''for i in range(99):
+            insert_line('sigmas.txt', i, str(self.sig))'''
 
         self.nodes = []
-        for i in range(self.num_nodes): # 68
-            xinput = X[i,:,:]
-            self.nodes.append(Node(i, self.sig, 100, self.nu))
-            self.nodes[i].fit(xinput.shape[0],xinput)
+        for i in range(self.num_nodes):  # 68
+            xinput = X[i, :, :]
+            tempSig = 0.00
+            if i < 49:
+                tempSig = float(get_sigma('sigmas.txt', int(i)))
+            else:
+                tempSig = float(get_sigma('sigmas2.txt', int(i-49)))
+            self.nodes.append(Node(i, tempSig, 10, self.nu))
+            self.nodes[i].fit(xinput.shape[0], xinput)
 
     def test(self, x): # x will be 68 by 67 for each frame from cam
         self.classified = np.zeros(shape=(x.shape[0], x.shape[1])).astype(int)
@@ -157,6 +187,6 @@ class ParzensNN: # pass in X = 68 * (4* 67), 68 is one for each feature, 67 is d
         #df1 = pandas.DataFrame(self.classified2)
         #df1.to_csv("classificationResults.csv")
         #print(str(self.classified2))
-        result = np.bincount(self.classified2.astype(int))
+        self.result = np.bincount(self.classified2.astype(int))
         #result = np.argmax(result)
-        print(result)
+        print(self.result)
