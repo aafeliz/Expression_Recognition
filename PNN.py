@@ -100,6 +100,8 @@ class Node:
                     indx += 1
                 self.parzensWindow(xinput, i)
             epochNum = epochNum + 1
+        # the weights of the output will depend on the percent error each node generates
+        self.weight = self.percent
         #'''
         # **************************************** CORRECTION STEP END *****************************************
         if self.inputNum < 49:
@@ -171,22 +173,29 @@ class ParzensNN: # pass in X = 68 * (4* 67), 68 is one for each feature, 67 is d
                 tempSig = float(get_sigma('sigmas.txt', int(i)))
             else:
                 tempSig = float(get_sigma('sigmas2.txt', int(i-49)))
-            self.nodes.append(Node(i, tempSig, 10, self.nu))
+            self.nodes.append(Node(i, tempSig, 6, self.nu))
             self.nodes[i].fit(xinput.shape[0], xinput)
 
     def test(self, x): # x will be 68 by 67 for each frame from cam
         self.classified = np.zeros(shape=(x.shape[0], x.shape[1])).astype(int)
         self.classified2 = np.zeros(shape=(x.shape[0]))
+        weights = []
+        for i in range(len(self.nodes)):
+            weights.append(self.nodes[i].weight)
+
         for i in range(x.shape[0]):  # 68
             for j in range(x.shape[1]):  # 67
                 self.nodes[i].test(x[i, j])
                 self.classified[i, j] = self.nodes[i].mostActivated
-
             counts = np.bincount(self.classified[i, :])
             self.classified2[i] = np.argmax(counts)
         #df1 = pandas.DataFrame(self.classified2)
         #df1.to_csv("classificationResults.csv")
-        #print(str(self.classified2))
-        self.result = np.bincount(self.classified2.astype(int))
+        print(str(self.classified2))
+        self.result = np.bincount(self.classified2.astype(int), weights=weights)
+        allSum = sum(self.result[:])
+        self.result = (self.result/allSum)
+        self.result = self.result*100
+        self.result = self.result.astype(int)
         #result = np.argmax(result)
         print(self.result)
