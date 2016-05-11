@@ -140,34 +140,41 @@ while 1:
             y[i] = y[i] / sum
 
         imgDistances[indx] = y
-        indx = indx+1
+
+        if pnn.state[indx] == 1:
+            cv2.circle(other, (x), 5, (0, 255, 0))
+        else:
+            cv2.circle(other, (x), 5, (0, 0, 255))
+        indx = indx + 1
+
     pnn.test(imgDistances)
-    white = (255,255,255)
-    red = (0, 0 ,255)
+    white = (255, 255,255)
+    red = (0, 0 , 255)
+    green = (0, 255, 0)
     blue = (255, 0, 0)
     if pnn.result[0] > pnn.result[1] and pnn.result[0] > pnn.result[2] and pnn.result[0] > pnn.result[3]:
-        cv2.putText(other, "ANGRY: " + str(pnn.result[0]) +'%', (0, 25), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, white, 1)
+        cv2.putText(other, "ANGRY: " + str(pnn.result[0]) +'%', (0, 25), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, green, 1)
         cv2.putText(other, "BASE: " + str(pnn.result[1])+'%', (0, 50), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, red, 1)
         cv2.putText(other, "HAPPY: " + str(pnn.result[2])+'%', (0, 75), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, red, 1)
         cv2.putText(other, "SAD: " + str(pnn.result[3])+'%', (0, 100), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, red, 1)
 
     elif pnn.result[1] > pnn.result[0] and pnn.result[1] > pnn.result[2] and pnn.result[1] > pnn.result[3]:
         cv2.putText(other, "ANGRY: " + str(pnn.result[0])+'%', (0, 25), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, red, 1)
-        cv2.putText(other, "BASE: " + str(pnn.result[1])+'%', (0, 50), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, white, 1)
+        cv2.putText(other, "BASE: " + str(pnn.result[1])+'%', (0, 50), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, green, 1)
         cv2.putText(other, "HAPPY: " + str(pnn.result[2])+'%', (0, 75), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, red, 1)
         cv2.putText(other, "SAD: " + str(pnn.result[3])+'%', (0, 100), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, red, 1)
 
     elif pnn.result[2] > pnn.result[0] and pnn.result[2] > pnn.result[1] and pnn.result[2] > pnn.result[3]:
         cv2.putText(other, "ANGRY: " + str(pnn.result[0])+'%', (0, 25), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, red, 1)
         cv2.putText(other, "BASE: " + str(pnn.result[1])+'%', (0, 50), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, red, 1)
-        cv2.putText(other, "HAPPY: " + str(pnn.result[2])+'%', (0, 75), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, white, 1)
+        cv2.putText(other, "HAPPY: " + str(pnn.result[2])+'%', (0, 75), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, green, 1)
         cv2.putText(other, "SAD: " + str(pnn.result[3])+'%', (0, 100), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, red, 1)
 
     elif pnn.result[3] > pnn.result[0] and pnn.result[3] > pnn.result[1] and pnn.result[3] > pnn.result[2]:
         cv2.putText(other, "ANGRY: " + str(pnn.result[0])+'%', (0, 25), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, red, 1)
         cv2.putText(other, "BASE: " + str(pnn.result[1])+'%', (0, 50), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, red, 1)
         cv2.putText(other, "HAPPY: " + str(pnn.result[2])+'%', (0, 75), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, red, 1)
-        cv2.putText(other, "SAD: " + str(pnn.result[3])+'%', (0, 100), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, white, 1)
+        cv2.putText(other, "SAD: " + str(pnn.result[3])+'%', (0, 100), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, green, 1)
 
 
     cv2.imshow("results", other)

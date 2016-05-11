@@ -6,6 +6,8 @@ import pandas
 #pnn.test(data)
 
 # TODO: implement the Delta errors into the correction step in order to temperaraly accelerate the learning rate
+
+
 def insert_line(fileName, lineNum, text):
     with open(fileName, 'r') as file:
         # read a list of lines into data
@@ -18,12 +20,14 @@ def insert_line(fileName, lineNum, text):
     with open(fileName, 'w') as file:
         file.writelines(data)
 
+
 def get_sigma(fileName, sigma):
     with open(fileName, 'r') as file:
         # read a list of lines into data
         data = file.readlines()
     sigma = data[sigma]
     return sigma
+
 
 class Node:
     def __init__(self, inputNum_, sig_, epoch_, nu_):
@@ -154,7 +158,7 @@ class Node:
         return idx
 
 
-class ParzensNN: # pass in X = 68 * (4* 67), 68 is one for each feature, 67 is distances per feature, 4 is the number class
+class ParzensNN:  # pass in X = 68 * (4* 67), 68 is one for each feature, 67 is distances per feature, 4 is the number class
     def __init__(self, X, num_nodes_, max_sigma_, min_sigma_,  nu_): # X: training data, y: labels, num_nodes: the amount of nodes in network, nu_: learning rate
         self.num_nodes = num_nodes_
         self.nu = nu_
@@ -162,6 +166,8 @@ class ParzensNN: # pass in X = 68 * (4* 67), 68 is one for each feature, 67 is d
         self.sigs = np.arange(min_sigma_, max_sigma_, self.sigStep)
         self.sig = 0.0001
         self.result = [0, 0, 0, 0]
+        self.state = np.zeros(shape=68)
+        #self.weights = []
         '''for i in range(99):
             insert_line('sigmas.txt', i, str(self.sig))'''
 
@@ -197,5 +203,10 @@ class ParzensNN: # pass in X = 68 * (4* 67), 68 is one for each feature, 67 is d
         self.result = (self.result/allSum)
         self.result = self.result*100
         self.result = self.result.astype(int)
-        #result = np.argmax(result)
-        print(self.result)
+        vote = np.argmax(self.result)
+        for i in range(len(self.classified2)):
+            if self.classified2[i] == int(vote):
+                self.state[i] = 1
+            else:
+                self.state[i] = 0
+        print(vote)
